@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">薄肌健康</string>
+    <string name="title_activity_main">薄肌健康</string>
+    <string name="package_name">com.boji.health</string>
+    <string name="custom_url_scheme">com.boji.health</string>
+</resources>

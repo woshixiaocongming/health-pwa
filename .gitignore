@@ -1,0 +1,20 @@
+.DS_Store
+node_modules/
+dist/
+.env
+*.local
+
+# Capacitor 打包产物（www/ 由 scripts/build-www.mjs 生成）
+www/
+android/local.properties
+android/.gradle/
+android/app/build/
+
+# 签名密钥绝不入库
+*.keystore
+*.jks
+keystore.properties
+
+# 仅本地保留，不进公开仓库
+sell/
+history/2026-10-18-安卓打包收尾评估.md

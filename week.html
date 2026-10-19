@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem('bm_settings')||'{}');if({blue:1,purple:1,white:1,pink:1,amber:1}[s.bgTheme])document.documentElement.setAttribute('data-bg',s.bgTheme);}catch(e){}})();</script>
+  <title>薄肌健康 · 复盘</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="icons/icon-192.png">
+  <script src="js/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1><span class="logo">📈</span> 复盘</h1>
+
+    <div class="subtabs">
+      <button class="subtab active" data-tab="daily">日复盘</button>
+      <button class="subtab" data-tab="weekly">周复盘</button>
+    </div>
+
+    <!-- 日复盘：纯数据展示 + 选填体重 -->
+    <div id="pane-daily">
+      <div class="card">
+        <div class="result-grid">
+          <div class="result-item"><div class="k">饮水达成率</div><div class="v" id="dWater">--</div></div>
+          <div class="result-item"><div class="k">热量盈亏</div><div class="v" id="dGap">--</div></div>
+          <div class="result-item"><div class="k">运动消耗</div><div class="v" id="dBurn">--</div></div>
+          <div class="result-item"><div class="k">睡眠</div><div class="v" id="dSleep">--</div></div>
+        </div>
+        <p class="muted small" id="dMacro" style="margin-top:12px"></p>
+        <p class="muted small" id="dIntakeLine" style="margin-top:4px"></p>
+      </div>
+
+      <div class="card">
+        <h2>今日体重（选填）</h2>
+        <div class="form-row" style="align-items:flex-end">
+          <div>
+            <label>体重（kg）</label>
+            <input type="number" id="dWeight" min="20" max="400" step="0.1" placeholder="不填也不影响其他记录">
+          </div>
+          <div style="flex:0 0 auto">
+            <button type="button" class="btn" id="dWeightSave">💾 保存体重</button>
+          </div>
+        </div>
+        <p class="muted small field-note">保存后同步到档案与周复盘的体重趋势线。</p>
+      </div>
+    </div>
+
+    <!-- 周复盘 -->
+    <div id="pane-weekly" style="display:none">
+      <div class="card">
+        <h2 id="weekTitle">第1周</h2>
+        <p class="muted small" id="weekBanner"></p>
+        <p class="accent small" id="weekBmrLine" style="margin-top:6px"></p>
+      </div>
+
+      <div class="card chart-card">
+        <h2>体重趋势 (kg)</h2>
+        <canvas id="chartWeight"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h2>饮水趋势 (ml)</h2>
+        <canvas id="chartWater"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h2>运动消耗趋势 (kcal)</h2>
+        <canvas id="chartExercise"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h2>摄入趋势 (kcal)</h2>
+        <canvas id="chartIntake"></canvas>
+      </div>
+      <div class="card chart-card">
+        <h2>睡眠趋势 (小时)</h2>
+        <canvas id="chartSleep"></canvas>
+      </div>
+
+      <div class="card">
+        <h2>本周摘要</h2>
+        <p class="muted" id="weekSummary"></p>
+      </div>
+
+      <div class="card">
+        <h2>AI 周分析</h2>
+        <button class="btn btn-block btn-ghost" id="weekPromptBtn">🤖 生成周分析提示词并复制</button>
+        <label>粘贴AI回复（自动识别亮点／改进／建议与基础代谢、饮水、热量数值）</label>
+        <textarea id="weekAiBox" placeholder="把AI整段回复粘贴到这里。若最后一行是 1650|2600|2100，会按 基础代谢|饮水|热量 识别"></textarea>
+        <br>
+        <button class="btn btn-block" id="weekAiParseBtn">⬇️ 解析并保存</button>
+        <p class="muted small" id="weekAiStatus" style="margin-top:6px"></p>
+        <p class="muted small field-note">解析结果只存本机：基础代谢会自动更新，饮水与热量作为下周睡眠提示词的参考，不会直接改动每日目标。</p>
+        <div id="weekAiView" style="display:none; margin-top:12px"></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <a href="index.html"><span class="tab-icon">🏠</span>首页</a>
+    <a href="water.html"><span class="tab-icon">💧</span>大水</a>
+    <a href="eat.html"><span class="tab-icon">🍚</span>饮食</a>
+    <a href="move.html"><span class="tab-icon">🏃</span>运动</a>
+    <a href="sleep.html"><span class="tab-icon">🌙</span>睡眠</a>
+    <a href="week.html"><span class="tab-icon">📈</span>复盘</a>
+  </nav>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/water.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/chart.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      Store.migrate();
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+      }
+
+      /* ---------- 子Tab切换 ---------- */
+      var weeklyRendered = false;
+      document.querySelectorAll('.subtab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          document.querySelectorAll('.subtab').forEach(function (b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          var tab = btn.dataset.tab;
+          document.getElementById('pane-daily').style.display = tab === 'daily' ? 'block' : 'none';
+          document.getElementById('pane-weekly').style.display = tab === 'weekly' ? 'block' : 'none';
+          if (tab === 'weekly') {
+            TrendChart.renderAll();
+            weeklyRendered = true;
+          }
+        });
+      });
+
+      /* ---------- 日复盘：纯数据 ---------- */
+      function renderDaily() {
+        var rec = Store.getRecord();
+        var intake = rec.eat.total;
+        var t = rec.eat.totals;
+        var bmrVal = Store.bmrNow() || 0;
+        var burn = Calc.todayBurnKcal(bmrVal, rec.move.todayBurn);
+        var goal = Store.waterGoalNow();
+        var wTotal = Store.waterTotal(rec);
+        document.getElementById('dWater').textContent = goal ? Math.round(wTotal / goal * 100) + '%' : '未设目标';
+        var gap = burn - intake;
+        document.getElementById('dGap').textContent = (gap >= 0 ? '-' : '+') + Math.abs(gap) + ' kcal';
+        document.getElementById('dBurn').textContent = rec.move.todayBurn + ' kcal';
+        var sl = Store.lastSleep();
+        document.getElementById('dSleep').textContent = sl ? sl.duration + ' h' : '未记录';
+
+        var mk = t.protein * 4, ck = t.carb * 4, fk = t.fat * 9;
+        var sum = mk + ck + fk;
+        document.getElementById('dMacro').textContent = sum
+          ? '营养比例：蛋白 ' + Math.round(mk / sum * 100) + '% ｜ 碳水 ' + Math.round(ck / sum * 100) +
+            '% ｜ 脂肪 ' + Math.round(fk / sum * 100) + '%（' + t.protein + '/' + t.carb + '/' + t.fat + ' g）'
+          : '营养比例：今日暂无摄入记录';
+        document.getElementById('dIntakeLine').textContent =
+          '摄入 ' + intake + ' kcal ｜ 总消耗估算 ' + burn + ' kcal ｜ 饮水 ' + wTotal + '/' + (goal || '--') + ' ml';
+
+        var w = document.getElementById('dWeight');
+        if (!w.value) w.value = rec.weight || (Store.getProfile() || {}).weight || '';
+      }
+      renderDaily();
+
+      /* ---------- 今日体重（选填，同步档案） ---------- */
+      document.getElementById('dWeightSave').addEventListener('click', function () {
+        var v = parseFloat(document.getElementById('dWeight').value);
+        if (!v) { toast('请填写体重，或留空不保存'); return; }
+        if (!Store.setWeight(v)) { toast('体重数值不在合理范围（20~400 kg）'); return; }
+        renderDaily();
+        if (weeklyRendered) TrendChart.renderAll();
+        renderWeekHeader();
+        toast('今日体重已保存 ' + v + ' kg ✓');
+      });
+
+      /* ---------- 周复盘：数字周表头 ---------- */
+      function renderWeekHeader() {
+        var prog = Store.weekProgress();
+        var bmr = Store.bmrNow();
+        document.getElementById('weekTitle').textContent = '第' + prog.week + '周';
+        document.getElementById('weekBanner').textContent = prog.full
+          ? '本周第' + prog.day + '天（' + Store.weekStartKey(prog.week) + ' 起算）· 周复盘已解锁'
+          : '第' + prog.week + '周进行中（还需 ' + (7 - prog.day) + ' 天解锁完整周复盘，现在生成的是截至今天的数据）';
+        document.getElementById('weekBmrLine').textContent = bmr
+          ? '当前基础代谢 ' + bmr + ' kcal（来源：' + Store.bmrSourceText() + '）'
+          : '尚未设置基础代谢：去睡眠页导入AI建议，或做一次周复盘';
+      }
+      renderWeekHeader();
+
+      /* ---------- 周复盘：提示词 ---------- */
+      document.getElementById('weekPromptBtn').addEventListener('click', function () {
+        var text = Share.weeklyPrompt();
+        if (!text) { toast('请先在档案页保存基础信息'); return; }
+        Share.copyText(text, function (ok) { toast(ok ? '周分析提示词已复制 📋' : '复制失败，请手动复制'); });
+      });
+
+      /* ---------- 周复盘：解析并保存（基础代谢自动更新） ---------- */
+      function renderWeekReview() {
+        var rev = Store.getWeekReview(Store.currentWeek()) || Store.lastWeekReview();
+        var box = document.getElementById('weekAiView');
+        if (!rev) { box.style.display = 'none'; box.innerHTML = ''; return; }
+        var rows = [
+          ['✅ 本周亮点', rev.highlights],
+          ['⚠️ 改进空间', rev.improvements],
+          ['📌 下周建议', rev.suggestions],
+          ['🔧 数值调整说明', rev.adjust]
+        ].filter(function (r) { return r[1]; });
+        box.style.display = 'block';
+        box.innerHTML =
+          '<p class="muted small">第' + rev.week + '周结论（' + esc(rev.atDay || String(rev.at || '').slice(0, 10)) + ' 导入）</p>' +
+          '<p class="accent small">基础代谢 ' + (rev.bmr || '--') + ' kcal ｜ 饮水 ' + (rev.water || '--') +
+            ' ml ｜ 热量 ' + (rev.kcal || '--') + ' kcal</p>' +
+          (rows.length
+            ? rows.map(function (r) {
+              return '<details class="meal-note" open><summary>' + r[0] + '</summary>' +
+                '<p class="small" style="white-space:pre-wrap">' + esc(r[1]) + '</p></details>';
+            }).join('')
+            : '<details class="meal-note" open><summary>🤖 AI原文</summary><p class="small" style="white-space:pre-wrap">' +
+              esc(rev.raw) + '</p></details>');
+      }
+
+      document.getElementById('weekAiParseBtn').addEventListener('click', function () {
+        var text = document.getElementById('weekAiBox').value.trim();
+        var status = document.getElementById('weekAiStatus');
+        if (!text) { status.textContent = '请先粘贴AI回复'; return; }
+        var parsed = Share.parseWeeklyAi(text);
+        if (!parsed) { status.textContent = '未识别到有效内容，请确认粘贴完整'; return; }
+        parsed.week = Store.currentWeek();
+        Store.saveWeekReview(parsed);
+        document.getElementById('weekAiBox').value = '';
+        status.textContent = '已保存第' + parsed.week + '周结论' +
+          (parsed.bmr ? '：基础代谢已更新为 ' + parsed.bmr + ' kcal' : '（未识别到基础代谢数值，可在档案页手动填写）');
+        renderWeekReview();
+        renderWeekHeader();
+        if (weeklyRendered) TrendChart.renderAll();
+        toast('AI周分析已保存 ✓');
+      });
+
+      renderWeekReview();
+
+      /* ---------- 本周摘要 ---------- */
+      function renderSummary() {
+        var d = TrendChart.buildDatasets();
+        var nums = function (arr) { return arr.filter(function (v) { return v !== null; }); };
+        var waterDays = nums(d.water);
+        var avgWater = waterDays.length ? Math.round(waterDays.reduce(function (a, b) { return a + b; }, 0) / waterDays.length) : 0;
+        var burnTotal = nums(d.burn).reduce(function (a, b) { return a + b; }, 0);
+        var intakeTotal = nums(d.intake).reduce(function (a, b) { return a + b; }, 0);
+        var weights = nums(d.weightActual);
+        var weightChange = weights.length >= 2 ? Math.round((weights[weights.length - 1] - weights[0]) * 10) / 10 : null;
+        document.getElementById('weekSummary').textContent =
+          '第' + d.week + '周已记录 ' + d.dates.length + ' 天 ｜ 日均饮水 ' + avgWater + ' ml ｜ 摄入合计 ' + intakeTotal +
+          ' kcal ｜ 运动消耗合计 ' + burnTotal + ' kcal' +
+          (weightChange !== null ? ' ｜ 实际体重变化 ' + (weightChange > 0 ? '+' : '') + weightChange + ' kg' : '');
+      }
+      renderSummary();
+
+      window.addEventListener('pageshow', function () {
+        renderDaily();
+        renderWeekHeader();
+        renderSummary();
+        renderWeekReview();
+        if (weeklyRendered) TrendChart.renderAll();
+      });
+      /* 背景切换时图表配色即时重绘（v1.11） */
+      window.addEventListener('bm-bg', function () {
+        if (weeklyRendered) TrendChart.renderAll();
+      });
+
+      function toast(msg) {
+        var t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(function () { t.remove(); }, 2000);
+      }
+    })();
+  </script>
+</body>
+</html>

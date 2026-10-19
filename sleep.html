@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem('bm_settings')||'{}');if({blue:1,purple:1,white:1,pink:1,amber:1}[s.bgTheme])document.documentElement.setAttribute('data-bg',s.bgTheme);}catch(e){}})();</script>
+  <title>薄肌健康 · 睡眠</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="icons/icon-192.png">
+</head>
+<body class="mod-sleep">
+  <div class="container">
+    <h1><span class="logo">🌙</span> 睡眠</h1>
+
+    <div class="card center">
+      <p class="sleep-big" id="sleepBig">-- h</p>
+      <p class="muted small" id="sleepWindowLine">尚未记录昨晚睡眠</p>
+      <span class="sleep-tag" id="sleepTag" style="display:none"></span>
+      <p class="muted small" id="bmrLine" style="margin-top:10px"></p>
+    </div>
+
+    <div class="card">
+      <h2>推荐作息</h2>
+      <div class="form-row">
+        <div>
+          <label>推荐入睡</label>
+          <input type="time" id="recBed" value="23:00">
+        </div>
+        <div>
+          <label>推荐起床</label>
+          <input type="time" id="recWake" value="07:00">
+        </div>
+      </div>
+      <p class="muted small" id="recSrc" style="margin-top:6px"></p>
+      <button type="button" class="btn btn-sm btn-ghost" id="recSaveBtn" style="margin-top:10px">💾 保存微调</button>
+      <p class="muted small field-note">首次由AI估算写入，之后每次导入AI建议会自动更新；也可在这里手动微调。</p>
+    </div>
+
+    <div class="card">
+      <h2>记录昨晚睡眠</h2>
+      <div class="form-row">
+        <div>
+          <label>就寝时间</label>
+          <input type="time" id="bedtime">
+        </div>
+        <div>
+          <label>起床时间</label>
+          <input type="time" id="waketime">
+        </div>
+      </div>
+      <p class="accent small" id="durPreview" style="margin-top:6px"></p>
+      <label>睡眠描述</label>
+      <textarea id="sleepDesc" placeholder="描述昨晚睡眠情况，越详细越好。例如：凌晨3点才睡，中间醒了两次，做了噩梦，房间有点热，早上被闹钟吵醒..."></textarea>
+      <div class="btn-grid" style="grid-template-columns:1fr 1fr; margin-top:12px">
+        <button type="button" class="btn btn-sm" id="sleepSaveBtn">💾 保存</button>
+        <button type="button" class="btn btn-sm btn-ghost" id="sleepPromptBtn">🤖 生成AI提示词</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>导入AI建议</h2>
+      <label>粘贴AI结果（格式：饮水|热量|蛋白|碳水|脂肪|总消耗|运动建议|饮食建议|基础代谢，支持换行、单位与文字容错）</label>
+      <textarea id="sleepImportBox" placeholder="例：2500ml|2100kcal|120g|200g|55g|2450kcal|睡眠不足，改为快走20分钟|晚餐补充优质蛋白|1650kcal"></textarea>
+      <br>
+      <button type="button" class="btn btn-block" id="sleepImportBtn">⬇️ 解析并导入</button>
+      <p class="muted small" id="sleepImportStatus" style="margin-top:6px"></p>
+      <div id="aiBlocks"></div>
+    </div>
+
+    <div class="card">
+      <h2>最近7天</h2>
+      <ul class="sleep-history" id="sleepHistory"></ul>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <a href="index.html"><span class="tab-icon">🏠</span>首页</a>
+    <a href="water.html"><span class="tab-icon">💧</span>大水</a>
+    <a href="eat.html"><span class="tab-icon">🍚</span>饮食</a>
+    <a href="move.html"><span class="tab-icon">🏃</span>运动</a>
+    <a href="sleep.html"><span class="tab-icon">🌙</span>睡眠</a>
+    <a href="week.html"><span class="tab-icon">📈</span>复盘</a>
+  </nav>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/sleep.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    Store.migrate();
+    SleepPage.init();
+  </script>
+</body>
+</html>

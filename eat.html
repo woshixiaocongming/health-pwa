@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem('bm_settings')||'{}');if({blue:1,purple:1,white:1,pink:1,amber:1}[s.bgTheme])document.documentElement.setAttribute('data-bg',s.bgTheme);}catch(e){}})();</script>
+  <title>薄肌健康 · 饮食</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="icons/icon-192.png">
+</head>
+<body class="mod-eat">
+  <div class="container">
+    <h1><span class="logo">🍚</span> 记录饮食</h1>
+
+    <div class="meal-grid" id="mealGrid"></div>
+
+    <div class="card fiber-card" id="fiberCard" style="display:none">
+      <span class="fiber-icon">🥦</span>
+      <div class="fiber-mid">
+        <p class="fiber-title">蔬菜 / 膳食纤维</p>
+        <p class="muted small" id="fiberSub"></p>
+      </div>
+      <span class="fiber-num" id="fiberNum">0 g</span>
+    </div>
+
+    <div class="card center" style="margin-top:16px">
+      <h2>今日总摄入</h2>
+      <p class="big-num" id="eatTotalText">0 kcal</p>
+      <p class="muted small" id="eatMacroText">蛋白 0g ｜ 碳水 0g ｜ 脂肪 0g</p>
+      <p class="muted small" id="eatGoalText"></p>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <h2>怎么用</h2>
+      <ol class="guide-list">
+        <li>拍照或文字记录吃了什么</li>
+        <li>点宫格里的「生成AI提示词」，连照片一起发给AI</li>
+        <li>把AI返回结果粘贴到上方输入框，点「解析AI结果并保存」，数据自动同步首页</li>
+        <li>展开查看AI评价与建议，持续优化下一餐</li>
+      </ol>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <a href="index.html"><span class="tab-icon">🏠</span>首页</a>
+    <a href="water.html"><span class="tab-icon">💧</span>大水</a>
+    <a href="eat.html"><span class="tab-icon">🍚</span>饮食</a>
+    <a href="move.html"><span class="tab-icon">🏃</span>运动</a>
+    <a href="sleep.html"><span class="tab-icon">🌙</span>睡眠</a>
+    <a href="week.html"><span class="tab-icon">📈</span>复盘</a>
+  </nav>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/water.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      Store.migrate();
+      var ICONS = { '早餐': '🌅', '午餐': '🍚', '晚餐': '🌙', '加餐': '🍎', '饮料': '🥤' };
+      var MEAL_COLORS = { '早餐': 'var(--gauge-intake)', '午餐': 'var(--gauge-burn)', '晚餐': 'var(--accent-sleep)', '加餐': 'var(--good)', '饮料': 'var(--accent-water)' };
+      var cells = {};
+
+      function nowHM() {
+        var d = new Date();
+        return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      }
+
+      function num(v) { var n = parseFloat(v); return isNaN(n) ? 0 : n; }
+
+      /* 始终从 Store 现读，避免快照过期导致收起态不刷新 */
+      function mealOf(meal) {
+        var r = Store.getRecord();
+        return (r.eat && r.eat[meal]) || {};
+      }
+
+      /* 收起态：餐名+热量+公共多层环（外圈=本餐占今日热量目标进度，内圈=宏量分段，环内=营养素文字） */
+      function renderBrief(cell, meal) {
+        var m = mealOf(meal);
+        cell.querySelector('.cell-kcal-num').textContent = num(m.kcal);
+        var goal = Store.calorieGoalNow();
+        var hasMacro = (num(m.protein) + num(m.carb) + num(m.fat)) > 0;
+        cell.querySelector('.cell-ring').innerHTML = RingUI.multi({
+          pct: goal ? num(m.kcal) / goal : 0,
+          totals: { protein: m.protein, carb: m.carb, fat: m.fat },
+          centerHtml: hasMacro
+            ? '<div class="ring-labels">' +
+              '<span style="color:' + RingUI.COLORS.protein + '">蛋白</span>' +
+              '<span style="color:' + RingUI.COLORS.carb + '">碳水</span>' +
+              '<span style="color:' + RingUI.COLORS.fat + '">脂肪</span>' +
+              '</div>'
+            : ''
+        });
+      }
+
+      function buildCell(meal) {
+        var cell = document.createElement('div');
+        cell.className = 'card meal-cell' + (meal === '饮料' ? ' span2' : '');
+        cell.dataset.meal = meal;
+        cell.innerHTML =
+          '<div class="cell-brief">' +
+          '<div class="cell-name">' + (ICONS[meal] || '') + ' ' + meal + '</div>' +
+          '<div class="cell-kcal" style="color:' + (MEAL_COLORS[meal] || 'var(--gauge-intake)') + '">' +
+          '<span class="cell-kcal-num">0</span><span class="cell-kcal-unit">kcal</span></div>' +
+          '<div class="cell-ring-row">' +
+          '<span class="cell-ring"></span>' +
+          '</div>' +
+          '</div>' +
+          '<div class="cell-form">' +
+          '<button type="button" class="btn btn-block btn-ghost meal-ai">🤖 生成AI提示词</button>' +
+          '<div class="parse-zone">' +
+          '<p class="parse-hint">📸 吃了啥，配合提示词发给AI，结果粘贴下方解析</p>' +
+          '<input type="text" class="meal-ai-input" placeholder="粘贴AI返回：热量|碳水|蛋白|脂肪|评价|建议">' +
+          '<button type="button" class="btn btn-block parse-btn meal-ai-import">⬇️ 解析AI结果并保存</button>' +
+          '</div>' +
+          '<details class="meal-note" style="display:none">' +
+          '<summary>🤖 AI评价与建议</summary>' +
+          '<p class="meal-review tip small"></p><p class="meal-advice small muted"></p>' +
+          '</details>' +
+          '</div>';
+
+        var aiInput = cell.querySelector('.meal-ai-input');
+        var noteEl = cell.querySelector('.meal-note');
+        var reviewEl = cell.querySelector('.meal-review');
+        var adviceEl = cell.querySelector('.meal-advice');
+
+        function showNote(review, advice) {
+          if (!review && !advice) { noteEl.style.display = 'none'; return; }
+          noteEl.style.display = 'block';
+          reviewEl.textContent = review ? '评价：' + review : '';
+          adviceEl.textContent = advice ? '建议：' + advice : '';
+        }
+        function fillForm() {
+          var m = mealOf(meal);
+          showNote(m.review, m.advice);
+        }
+        fillForm();
+
+        cell.querySelector('.cell-brief').addEventListener('click', function () {
+          var opening = !cell.classList.contains('open');
+          cell.classList.toggle('open');
+          if (opening) fillForm(); // 展开时同步最新AI评价
+        });
+
+        cell.querySelector('.meal-ai').addEventListener('click', function () {
+          var text = Share.mealPrompt(meal, mealOf(meal).desc || '');
+          if (!text) { alert('请先在档案页保存体重与目标'); return; }
+          Share.copyText(text, function (ok) {
+            toast(ok ? meal + '提示词已复制，连照片发给AI 📋' : '复制失败，请手动复制');
+          });
+        });
+
+        cell.querySelector('.meal-ai-import').addEventListener('click', function () {
+          var parsed = Share.parseMealAi(aiInput.value);
+          if (!parsed) { toast('格式应为：热量|碳水|蛋白|脂肪|评价|建议'); return; }
+          showNote(parsed.review, parsed.advice);
+          saveMeal(meal, {
+            desc: mealOf(meal).desc || '',
+            kcal: parsed.kcal, carb: parsed.carb, protein: parsed.protein, fat: parsed.fat,
+            fiber: parsed.fiber || 0,
+            review: parsed.review, advice: parsed.advice,
+            time: nowHM()
+          });
+          if (parsed.fiberGoal) Store.saveFiberGoal(parsed.fiberGoal);
+          aiInput.value = '';
+          renderBrief(cell, meal);
+          toast(meal + ' AI结果已导入并保存 ✓' + (parsed.fiber ? '（纤维 ' + parsed.fiber + 'g）' : ''));
+        });
+
+        cells[meal] = cell;
+        return cell;
+      }
+
+      function saveMeal(meal, patch) {
+        var r = Store.getRecord();
+        var cur = r.eat[meal] || {};
+        Object.keys(patch).forEach(function (k) { cur[k] = patch[k]; });
+        var eat = {};
+        Store.MEALS.forEach(function (m) {
+          eat[m] = (m === meal) ? cur : (r.eat[m] || {});
+        });
+        Store.saveRecord(null, { eat: eat });
+        refreshAll();
+      }
+
+      function refreshAll() {
+        Store.MEALS.forEach(function (m) { if (cells[m]) renderBrief(cells[m], m); });
+        var r = Store.getRecord();
+        var t = r.eat.totals;
+        var ai = Store.aiGoals();
+        document.getElementById('eatTotalText').textContent = r.eat.total + ' kcal';
+        document.getElementById('eatMacroText').textContent =
+          '蛋白 ' + t.protein + 'g ｜ 碳水 ' + t.carb + 'g ｜ 脂肪 ' + t.fat + 'g';
+        document.getElementById('eatGoalText').textContent = ai.kcal
+          ? '目标：热量 ' + ai.kcal + ' kcal ｜ 蛋白 ' + Store.proteinGoalNow() +
+            'g ｜ 碳水 ' + Store.carbGoalNow() + 'g ｜ 脂肪 ' + Store.fatGoalNow() + 'g'
+          : '去睡眠页导入AI建议以设置目标';
+        renderFiber();
+      }
+
+      /* 蔬菜/纤维追踪：仅在AI解析出纤维数据后显示 */
+      function renderFiber() {
+        var total = Store.fiberTotal(Store.getRecord());
+        var goal = Store.fiberGoalNow();
+        var card = document.getElementById('fiberCard');
+        if (!total && !goal) { card.style.display = 'none'; return; }
+        card.style.display = 'flex';
+        document.getElementById('fiberNum').textContent = total + ' g';
+        document.getElementById('fiberSub').textContent = goal
+          ? 'AI推荐每日摄入 ' + goal + ' g ｜ 今日已从解析中累计'
+          : '今日已从AI解析中累计（继续解析含蔬菜的餐次）';
+      }
+
+      var grid = document.getElementById('mealGrid');
+      Store.MEALS.forEach(function (meal) {
+        var cell = buildCell(meal);
+        grid.appendChild(cell);
+        renderBrief(cell, meal);
+      });
+      refreshAll();
+
+      /* 从其他页返回/跨天回来时同步收起态数字；主题切换时同步环色 */
+      window.addEventListener('pageshow', refreshAll);
+      window.addEventListener('bm-theme', refreshAll);
+      document.addEventListener('visibilitychange', function () {
+        if (!document.hidden) refreshAll();
+      });
+
+      function toast(msg) {
+        var t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(function () { t.remove(); }, 1800);
+      }
+    })();
+  </script>
+</body>
+</html>

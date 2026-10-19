@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem('bm_settings')||'{}');if({blue:1,purple:1,white:1,pink:1,amber:1}[s.bgTheme])document.documentElement.setAttribute('data-bg',s.bgTheme);}catch(e){}})();</script>
+  <title>薄肌健康 · 大水</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="icons/icon-192.png">
+</head>
+<body class="mod-water">
+  <div class="container">
+    <h1><span class="logo">💧</span> 大水时间</h1>
+
+    <div class="card center">
+      <p class="water-topline" id="topLine">今日 0 / -- ml</p>
+      <div id="personBox" class="person-box"></div>
+      <p class="muted small">👆 点人影任意位置 +10ml（带水杯倾斜动画与咕噜音）</p>
+    </div>
+
+    <div class="card">
+      <div class="form-row" style="align-items:center">
+        <div>
+          <input type="number" id="customMl" min="10" max="3000" step="10" value="300">
+        </div>
+        <div style="flex:0 0 auto">
+          <button class="btn" id="customBtn">确定</button>
+        </div>
+      </div>
+      <p class="muted small" style="margin-top:6px">输入任意 ml 后点确定，人影会执行喝水动画（水量越大动作越大）。</p>
+      <button class="btn btn-block btn-ghost btn-sm" id="waterPromptBtn" style="margin-top:10px">🤖 生成饮水AI提示词</button>
+      <ul class="log-list" id="logList"></ul>
+    </div>
+
+    <div class="card center">
+      <p class="big-num" id="streakText">0 天</p>
+      <p class="muted small">饮水达标连胜天数</p>
+    </div>
+
+    <div class="card">
+      <h2>提醒</h2>
+      <button class="btn btn-block btn-ghost" id="reminderBtn">开启每小时喝水提醒</button>
+      <p class="muted small" id="reminderStatus" style="margin-top:8px"></p>
+      <p class="tip small">💡 提醒仅在页面打开时生效（纯前端限制），关闭页面或浏览器后不再触发。</p>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <a href="index.html"><span class="tab-icon">🏠</span>首页</a>
+    <a href="water.html"><span class="tab-icon">💧</span>大水</a>
+    <a href="eat.html"><span class="tab-icon">🍚</span>饮食</a>
+    <a href="move.html"><span class="tab-icon">🏃</span>运动</a>
+    <a href="sleep.html"><span class="tab-icon">🌙</span>睡眠</a>
+    <a href="week.html"><span class="tab-icon">📈</span>复盘</a>
+  </nav>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/water.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      Store.migrate();
+      var box = document.getElementById('personBox');
+      var prof = Store.getProfile();
+      Water.mount(box, prof && prof.gender);
+      var celebrated = sessionStorage.getItem('bm_celebrated_' + Store.todayKey());
+
+      function refresh() {
+        var total = Water.todayTotal();
+        var goal = Water.goal();
+        document.getElementById('topLine').textContent =
+          '今日 ' + total + ' / ' + (goal || '--') + ' ml';
+        document.getElementById('streakText').textContent = Store.getStreak() + ' 天';
+        renderLogs();
+        if (goal && total >= goal && !celebrated) {
+          celebrated = '1';
+          sessionStorage.setItem('bm_celebrated_' + Store.todayKey(), '1');
+          Water.celebrate();
+          toast('今日饮水已达标 🎉');
+        }
+      }
+
+      function renderLogs() {
+        var rec = Store.getRecord();
+        var logs = (rec.water && rec.water.logs) || [];
+        var ul = document.getElementById('logList');
+        ul.innerHTML = logs.slice().reverse().map(function (l, i) {
+          var idx = logs.length - 1 - i;
+          return '<li><span>' + l.time + '</span><span class="accent">+' + l.ml + ' ml</span>' +
+            '<button class="btn btn-ghost btn-sm" data-undo="' + idx + '">撤销</button></li>';
+        }).join('');
+        ul.querySelectorAll('[data-undo]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            var i = parseInt(b.dataset.undo, 10);
+            logs.splice(i, 1);
+            Store.saveRecord(null, { water: { logs: logs } });
+            refresh();
+          });
+        });
+      }
+
+      box.addEventListener('click', function () {
+        Water.addWater(10);
+        Water.drink(box, 10);
+        Water.glug();
+        refresh();
+      });
+
+      document.getElementById('customBtn').addEventListener('click', function () {
+        var ml = parseInt(document.getElementById('customMl').value, 10);
+        if (!ml || ml <= 0) { alert('请输入有效毫升数'); return; }
+        Water.addWater(ml);
+        Water.drink(box, ml);
+        Water.glug();
+        refresh();
+        toast('+' + ml + ' ml 已记录 💧');
+      });
+
+      document.getElementById('waterPromptBtn').addEventListener('click', function () {
+        var text = Share.waterPrompt();
+        if (!text) { alert('请先在档案页保存体重与目标'); return; }
+        Share.copyText(text, function (ok) { toast(ok ? '饮水提示词已复制 📋' : '复制失败，请手动复制'); });
+      });
+
+      document.getElementById('reminderBtn').addEventListener('click', function () {
+        Water.enableHourlyReminder(function (status) {
+          document.getElementById('reminderStatus').textContent = status;
+        });
+      });
+      document.getElementById('reminderStatus').textContent = Water.reminderEnvText() + '（点按钮开启每小时提醒）';
+
+      function toast(msg) {
+        var t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(function () { t.remove(); }, 2200);
+      }
+
+      refresh();
+    })();
+  </script>
+</body>
+</html>

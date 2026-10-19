@@ -1,0 +1,32 @@
+{
+  "name": "health-pwa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "薄肌健康 - 纯前端健康记录 PWA：无后端、无API，数据只存 localStorage，配合手机AI使用；可用 Capacitor 打包为安卓 APK",
+  "scripts": {
+    "build": "node scripts/build-www.mjs",
+    "sync": "npm run build && cap sync android",
+    "open:android": "cap open android"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/woshixiaocongming/health-pwa.git"
+  },
+  "keywords": [
+    "pwa",
+    "health",
+    "capacitor",
+    "android"
+  ],
+  "author": "woshixiaocongming",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/woshixiaocongming/health-pwa/issues"
+  },
+  "homepage": "https://github.com/woshixiaocongming/health-pwa#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.5.3",
+    "@capacitor/cli": "^8.5.3",
+    "@capacitor/core": "^8.5.3"
+  }
+}

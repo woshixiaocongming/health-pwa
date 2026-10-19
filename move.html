@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem('bm_settings')||'{}');if({blue:1,purple:1,white:1,pink:1,amber:1}[s.bgTheme])document.documentElement.setAttribute('data-bg',s.bgTheme);}catch(e){}})();</script>
+  <title>薄肌健康 · 运动</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="icons/icon-192.png">
+</head>
+<body class="mod-move">
+  <div class="container">
+    <h1><span class="logo">🏃</span> 运动记录</h1>
+
+    <div class="card">
+      <h2>今日运动目标</h2>
+      <p id="moveGoalText" class="move-goal empty">暂无目标，去睡眠页导入AI建议</p>
+    </div>
+
+    <div class="card">
+      <h2>添加运动</h2>
+      <label>类型</label>
+      <input type="text" id="exType" placeholder="如：打篮球、遛狗、跳绳...">
+      <div class="form-row">
+        <div>
+          <label>时长（分钟）</label>
+          <input type="number" id="exMinutes" min="1" max="600" value="30">
+        </div>
+        <div>
+          <label>强度</label>
+          <select id="exIntensity">
+            <option value="低">低</option>
+            <option value="中" selected>中</option>
+            <option value="高">高</option>
+          </select>
+        </div>
+      </div>
+      <br>
+      <button class="btn btn-block" id="addBtn">+ 运动</button>
+      <p class="muted small" style="margin-top:8px">本地估算 = 体重 × 强度系数（低3.5／中5.0／高8.0）× 时长（小时）；也可用每条记录的AI提示词获取更准估算。</p>
+    </div>
+
+    <div class="card">
+      <h2>今日运动记录</h2>
+      <ul class="log-list" id="moveList"></ul>
+      <p class="center" style="margin-top:10px">运动总消耗：<span class="accent big-num" id="burnText">0</span> kcal</p>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <a href="index.html"><span class="tab-icon">🏠</span>首页</a>
+    <a href="water.html"><span class="tab-icon">💧</span>大水</a>
+    <a href="eat.html"><span class="tab-icon">🍚</span>饮食</a>
+    <a href="move.html"><span class="tab-icon">🏃</span>运动</a>
+    <a href="sleep.html"><span class="tab-icon">🌙</span>睡眠</a>
+    <a href="week.html"><span class="tab-icon">📈</span>复盘</a>
+  </nav>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/water.js"></script>
+  <script src="js/share.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      Store.migrate();
+
+      function nowHM() {
+        var d = new Date();
+        return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+      }
+
+      function esc(s) {
+        return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+        });
+      }
+
+      function refreshGoal() {
+        var ai = Store.aiGoals();
+        var goal = ai.exerciseAdvice || ai.moveAdvice;
+        var el = document.getElementById('moveGoalText');
+        el.textContent = goal || '暂无目标，去睡眠页导入AI建议';
+        el.className = goal ? 'move-goal' : 'move-goal empty';
+      }
+
+      function refresh() {
+        var rec = Store.getRecord();
+        var ul = document.getElementById('moveList');
+        if (!rec.move.logs.length) {
+          ul.innerHTML = '<li class="muted">今天还没有运动记录</li>';
+        } else {
+          ul.innerHTML = rec.move.logs.map(function (l, i) {
+            var note = (l.review || l.advice)
+              ? '<details class="meal-note" style="display:block"><summary>🤖 AI评价与建议</summary>' +
+                (l.review ? '<p class="tip small">评价：' + esc(l.review) + '</p>' : '') +
+                (l.advice ? '<p class="small muted">建议：' + esc(l.advice) + '</p>' : '') +
+                '</details>'
+              : '';
+            return '<li style="display:block">' +
+              '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px">' +
+              '<span>' + (l.time || '--') + ' ' + esc(l.type) + ' ' + l.minutes + '分钟（' + l.intensity + '）</span>' +
+              '<span class="accent">' + l.kcal + ' kcal</span>' +
+              '<button class="btn btn-ghost btn-sm" data-del="' + i + '">删</button></div>' +
+              '<div class="btn-grid" style="grid-template-columns:1fr; margin-top:6px">' +
+              '<button class="btn btn-sm btn-ghost" data-prompt="' + i + '">🤖 生成AI提示词</button></div>' +
+              '<div class="log-ai-row">' +
+              '<input type="text" data-aiinput="' + i + '" placeholder="粘贴AI返回：消耗kcal|评价|建议">' +
+              '<button class="btn btn-sm btn-ghost" data-parse="' + i + '">⬇️ 解析</button></div>' +
+              note + '</li>';
+          }).join('');
+
+          ul.querySelectorAll('[data-del]').forEach(function (b) {
+            b.addEventListener('click', function () {
+              var r = Store.getRecord();
+              r.move.logs.splice(parseInt(b.dataset.del, 10), 1);
+              r.move.todayBurn = r.move.logs.reduce(function (s, l) { return s + (l.kcal || 0); }, 0);
+              Store.saveRecord(null, { move: { logs: r.move.logs, todayBurn: r.move.todayBurn } });
+              refresh();
+            });
+          });
+
+          ul.querySelectorAll('[data-prompt]').forEach(function (b) {
+            b.addEventListener('click', function () {
+              var l = Store.getRecord().move.logs[parseInt(b.dataset.prompt, 10)];
+              var text = Share.moveLogPrompt(l.type, l.minutes, l.intensity);
+              if (!text) { alert('请先在档案页填写体重'); return; }
+              Share.copyText(text, function (ok) { toast(ok ? '提示词已复制，发给AI 📋' : '复制失败，请手动复制'); });
+            });
+          });
+
+          ul.querySelectorAll('[data-parse]').forEach(function (b) {
+            b.addEventListener('click', function () {
+              var i = parseInt(b.dataset.parse, 10);
+              var input = ul.querySelector('[data-aiinput="' + i + '"]');
+              var parsed = Share.parseMoveAi(input.value);
+              if (!parsed) { toast('格式应为：消耗kcal|评价|建议'); return; }
+              var r = Store.getRecord();
+              var l = r.move.logs[i];
+              l.kcal = parsed.kcal;
+              l.review = parsed.review;
+              l.advice = parsed.advice;
+              r.move.todayBurn = r.move.logs.reduce(function (s, x) { return s + (x.kcal || 0); }, 0);
+              Store.saveRecord(null, { move: { logs: r.move.logs, todayBurn: r.move.todayBurn } });
+              input.value = '';
+              refresh();
+              toast('AI估算已更新：' + parsed.kcal + ' kcal ✓');
+            });
+          });
+        }
+        document.getElementById('burnText').textContent = rec.move.todayBurn;
+      }
+
+      document.getElementById('addBtn').addEventListener('click', function () {
+        var p = Store.getProfile();
+        if (!p || !p.weight) { alert('请先在档案页填写体重，才能计算消耗'); return; }
+        var type = document.getElementById('exType').value.trim();
+        var minutes = parseInt(document.getElementById('exMinutes').value, 10);
+        var intensity = document.getElementById('exIntensity').value;
+        if (!type) { alert('请填写运动类型，如：打篮球'); return; }
+        if (!minutes || minutes <= 0) { alert('请填写时长'); return; }
+        var met = Calc.MET[type] || Calc.INTENSITY_MET[intensity] || 5.0;
+        var kcal = Calc.moveKcal(p.weight, met, minutes);
+        var rec = Store.getRecord();
+        var logs = rec.move.logs.slice();
+        logs.push({ type: type, minutes: minutes, intensity: intensity, met: met, kcal: kcal, time: nowHM() });
+        Store.saveRecord(null, { move: { logs: logs } });
+        document.getElementById('exType').value = '';
+        refresh();
+        toast('+' + kcal + ' kcal 已记录 ✓');
+      });
+
+      function toast(msg) {
+        var t = document.createElement('div');
+        t.className = 'toast';
+        t.textContent = msg;
+        document.body.appendChild(t);
+        setTimeout(function () { t.remove(); }, 1800);
+      }
+
+      refreshGoal();
+      refresh();
+    })();
+  </script>
+</body>
+</html>

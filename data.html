@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem('bm_settings')||'{}');if({blue:1,purple:1,white:1,pink:1,amber:1}[s.bgTheme])document.documentElement.setAttribute('data-bg',s.bgTheme);}catch(e){}})();</script>
+  <title>薄肌健康 · 数据管理</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="icons/icon-192.png">
+</head>
+<body>
+  <div class="container">
+    <h1><span class="logo">🗂</span> 数据管理</h1>
+
+    <div class="card">
+      <h2>导出（Markdown）</h2>
+      <p class="muted small">复制后可粘贴给AI，或粘到备忘录另存为 .md（包含档案 + 全部每日记录）</p>
+      <br>
+      <button class="btn btn-block" id="exportBtn">📋 复制 Markdown</button>
+      <p class="muted small" id="exportStatus" style="margin-top:8px"></p>
+    </div>
+
+    <div class="card">
+      <h2>导入</h2>
+      <p class="muted small">选择之前导出的 .md 文件，数据将解析并合并回本机。</p>
+      <br>
+      <input type="file" id="importInput" accept=".md,.markdown,.txt" class="btn btn-ghost btn-block">
+      <p class="muted small" id="importStatus" style="margin-top:8px"></p>
+    </div>
+
+    <div class="card">
+      <h2 class="danger-text">危险操作</h2>
+      <p class="muted small">清空本机所有档案与记录，不可恢复（建议先导出备份）。</p>
+      <br>
+      <button class="btn btn-block btn-danger" id="clearBtn">🗑 清空全部数据</button>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <a href="index.html"><span class="tab-icon">🏠</span>首页</a>
+    <a href="water.html"><span class="tab-icon">💧</span>大水</a>
+    <a href="eat.html"><span class="tab-icon">🍚</span>饮食</a>
+    <a href="move.html"><span class="tab-icon">🏃</span>运动</a>
+    <a href="sleep.html"><span class="tab-icon">🌙</span>睡眠</a>
+    <a href="week.html"><span class="tab-icon">📈</span>复盘</a>
+  </nav>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/water.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      /* ---------- 复制导出（逻辑在 js/exporter.js） ---------- */
+      var exportTimer = null;
+      document.getElementById('exportBtn').addEventListener('click', function () {
+        var status = document.getElementById('exportStatus');
+        Exporter.copy('all', function (ok) {
+          status.textContent = ok ? '✅ 已复制到剪贴板，可粘贴保存' : '❌ 复制失败，请手动复制';
+          clearTimeout(exportTimer);
+          exportTimer = setTimeout(function () { status.textContent = ''; }, 2000);
+        });
+      });
+
+      /* ---------- 导入 ---------- */
+      document.getElementById('importInput').addEventListener('change', function () {
+        var file = this.files && this.files[0];
+        if (!file) return;
+        var status = document.getElementById('importStatus');
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            var text = e.target.result;
+            var parsed = parseMarkdown(text);
+            if (!parsed.profile && !Object.keys(parsed.records).length) {
+              status.textContent = '未解析到有效数据，请确认是本工具导出的文件。';
+              return;
+            }
+            if (!confirm('将导入档案与 ' + Object.keys(parsed.records).length + ' 天记录，覆盖同名日期数据。继续？')) return;
+            var merged = Store.exportAll();
+            if (parsed.profile) merged.profile = parsed.profile;
+            if (parsed.settings) merged.settings = parsed.settings;
+            Object.keys(parsed.records).forEach(function (k) { merged.records[k] = parsed.records[k]; });
+            Store.importAll(merged);
+            status.textContent = '导入成功 ✓ 刷新页面生效。';
+            setTimeout(function () { location.reload(); }, 1200);
+          } catch (err) {
+            status.textContent = '解析失败：文件格式不正确';
+          }
+        };
+        reader.readAsText(file);
+      });
+
+      function parseMarkdown(text) {
+        var result = { profile: null, settings: null, records: {} };
+        var sections = text.split(/^## /m).slice(1);
+        sections.forEach(function (sec) {
+          var blocks = sec.match(/```json\n([\s\S]*?)```/g) || [];
+          if (/^档案/.test(sec) && blocks[0]) {
+            result.profile = JSON.parse(blocks[0].replace(/```json\n|```/g, ''));
+          } else if (/^设置/.test(sec) && blocks[0]) {
+            result.settings = JSON.parse(blocks[0].replace(/```json\n|```/g, ''));
+          } else if (/^每日记录/.test(sec)) {
+            var dayChunks = sec.split(/^### /m).slice(1);
+            dayChunks.forEach(function (chunk) {
+              var dateKey = chunk.split('\n')[0].trim();
+              var m = chunk.match(/```json\n([\s\S]*?)```/);
+              if (m && /^\d{4}-\d{2}-\d{2}$/.test(dateKey)) {
+                result.records[dateKey] = JSON.parse(m[1]);
+              }
+            });
+          }
+        });
+        return result;
+      }
+
+      /* ---------- 清空（二次确认） ---------- */
+      document.getElementById('clearBtn').addEventListener('click', function () {
+        if (!confirm('确定要清空全部数据吗？此操作不可恢复！')) return;
+        if (!confirm('再次确认：档案、饮水、饮食、睡眠、运动记录将全部删除。真的要清空吗？')) return;
+        Store.clearAll();
+        Object.keys(localStorage).filter(function (k) { return k.indexOf('bm_today_intake') === 0; })
+          .forEach(function (k) { localStorage.removeItem(k); });
+        alert('已清空');
+        location.href = 'index.html';
+      });
+    })();
+  </script>
+</body>
+</html>

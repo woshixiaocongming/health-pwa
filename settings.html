@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <script>(function(){try{var s=JSON.parse(localStorage.getItem('bm_settings')||'{}');if({blue:1,purple:1,white:1,pink:1,amber:1}[s.bgTheme])document.documentElement.setAttribute('data-bg',s.bgTheme);}catch(e){}})();</script>
+  <title>薄肌健康 · 设置</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="icons/icon-192.png">
+</head>
+<body>
+  <div class="container">
+    <h1><span class="logo">⚙️</span> 设置</h1>
+
+    <div class="card">
+      <h2>📲 安装指南</h2>
+      <p class="small"><strong>安卓：</strong>浏览器菜单（⋮）→ 添加到主屏幕 / 安装应用</p>
+      <p class="small"><strong>iOS：</strong>Safari 底部分享按钮 → 添加到主屏幕</p>
+      <p class="muted small" style="margin-top:8px">各浏览器略有差异，仅参考，安装后离线可用，数据仍存本机。</p>
+    </div>
+
+    <div class="card">
+      <h2>AI 服务商</h2>
+      <label>把生成的提问粘贴给哪个AI（仅作记录，不影响功能）</label>
+      <select id="aiProvider">
+        <option value="元宝">腾讯元宝</option>
+        <option value="Kimi">Kimi</option>
+        <option value="智谱">智谱清言</option>
+        <option value="ChatGPT">ChatGPT</option>
+        <option value="其他">其他</option>
+      </select>
+      <p class="muted small" style="margin-top:8px">本应用不连接任何AI接口，只帮你把数据整理成一段可复制的文字。</p>
+    </div>
+
+    <div class="card">
+      <h2>单位</h2>
+      <label>体重单位</label>
+      <select id="unit">
+        <option value="kg">千克 (kg)</option>
+        <option value="lb">磅 (lb)</option>
+      </select>
+      <div class="form-row" style="margin-top:12px; align-items:center">
+        <div>
+          <input type="number" id="convertVal" step="0.1" placeholder="输入数值">
+        </div>
+        <div style="flex:0 0 auto">
+          <button class="btn btn-ghost btn-sm" id="convertBtn">换算</button>
+        </div>
+      </div>
+      <p class="accent" id="convertResult" style="margin-top:8px"></p>
+    </div>
+
+    <div class="card">
+      <h2>每日自动归档</h2>
+      <label style="display:flex; align-items:center; gap:10px; margin:0">
+        <input type="checkbox" id="autoArchive" style="width:auto">
+        <span class="small">开启后，隔天首次打开应用自动把昨日记录标记为已归档（数据仍保留，可在数据管理导出）；关闭则仅手动清空。</span>
+      </label>
+      <p class="muted small field-note">另外：从档案的开始日期起算，每满7天自动翻到下一周，上一周的记录整体归档，周复盘按数字周统计。</p>
+    </div>
+
+    <div class="card">
+      <h2>关于</h2>
+      <p><strong>薄肌健康</strong> v1.7 · 纯前端 PWA</p>
+      <p class="muted small">数据100%保存在你手机的浏览器 localStorage 中，无后端、无API、无上传。</p>
+      <br>
+      <p class="tip small"><strong>免责声明：</strong>本应用为个人记录工具，不替代医生诊断。所有数字（基础代谢、每日总消耗、减脂预估等）与AI回复仅为一般性参考估算，不构成医疗建议。如有疾病、孕期、进食障碍史或正在服药，请在医生或注册营养师指导下调整饮食与运动。</p>
+    </div>
+
+    <div class="card">
+      <h2>数据管理</h2>
+      <a href="data.html" class="btn btn-block btn-ghost">前往导出 / 导入 / 清空 →</a>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <a href="index.html"><span class="tab-icon">🏠</span>首页</a>
+    <a href="water.html"><span class="tab-icon">💧</span>大水</a>
+    <a href="eat.html"><span class="tab-icon">🍚</span>饮食</a>
+    <a href="move.html"><span class="tab-icon">🏃</span>运动</a>
+    <a href="sleep.html"><span class="tab-icon">🌙</span>睡眠</a>
+    <a href="week.html"><span class="tab-icon">📈</span>复盘</a>
+  </nav>
+
+  <script src="js/storage.js"></script>
+  <script src="js/calculator.js"></script>
+  <script src="js/water.js"></script>
+  <script src="js/exporter.js"></script>
+  <script src="js/menu.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    (function () {
+      var s = Store.getSettings();
+      document.getElementById('aiProvider').value = s.aiProvider || '元宝';
+      document.getElementById('unit').value = s.unit || 'kg';
+      document.getElementById('autoArchive').checked = s.autoArchive !== false;
+
+      function save() {
+        Store.saveSettings({
+          aiProvider: document.getElementById('aiProvider').value,
+          unit: document.getElementById('unit').value,
+          autoArchive: document.getElementById('autoArchive').checked
+        });
+      }
+      document.getElementById('aiProvider').addEventListener('change', save);
+      document.getElementById('unit').addEventListener('change', save);
+      document.getElementById('autoArchive').addEventListener('change', save);
+
+      document.getElementById('convertBtn').addEventListener('click', function () {
+        var v = parseFloat(document.getElementById('convertVal').value);
+        var out = document.getElementById('convertResult');
+        if (isNaN(v)) { out.textContent = ''; return; }
+        var unit = document.getElementById('unit').value;
+        out.textContent = unit === 'kg'
+          ? v + ' kg = ' + Calc.kgToLb(v) + ' lb'
+          : v + ' lb = ' + Calc.lbToKg(v) + ' kg';
+      });
+    })();
+  </script>
+</body>
+</html>

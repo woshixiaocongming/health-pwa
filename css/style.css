@@ -1,0 +1,531 @@
+/* 薄肌健康 - 苹果健康风深色主题（v1.5） */
+:root {
+  --bg: #000000;
+  --card: #2C2C2E;
+  --bar: rgba(28, 28, 30, 0.94);   /* 底部导航磨砂底 */
+  --card-border: rgba(255, 255, 255, 0.08);
+  --accent: #30D158;          /* 全局绿 */
+  --accent-water: #30B0C7;    /* 水蓝 */
+  --accent-exercise: #FF6B35; /* 运动橙 */
+  --accent-sleep: #9B72F0;    /* 睡眠紫 */
+  --accent-diet: #FFD60A;     /* 饮食黄 */
+  --text: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --radius: 20px;
+  --radius-sm: 12px;
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  --ring-width: 3px;
+  /* 兼容旧引用 */
+  --muted: var(--text-secondary);
+  --danger: #FF453A;
+  --warn: #FFD60A;
+  --good: #30D158;
+  --accent2: var(--accent);
+  --accent-dim: rgba(48, 209, 88, 0.14);
+  /* 表面/描边/轨道令牌（v1.11：浅色背景可整体换档） */
+  --track: rgba(255, 255, 255, 0.08);
+  --tint: rgba(255, 255, 255, 0.04);
+  --field: rgba(255, 255, 255, 0.06);
+  --tint-strong: rgba(255, 255, 255, 0.08);
+  --line: rgba(255, 255, 255, 0.1);
+  --line-strong: rgba(255, 255, 255, 0.25);
+  --focus: rgba(255, 255, 255, 0.12);
+  --tip-move-text: #FFB08A;
+  --tip-sleep-text: #C7B2F7;
+  --tip-diet-text: #FFE680;
+  --chart-est: #8E8E93;
+  /* 表盘与宏量令牌（v1.11：JS 圆环/图表统一读令牌，浅色自动换深色版） */
+  --gauge-intake: #FFD60A;
+  --gauge-burn: #FF6B35;
+  --c-protein: #0A84FF;
+  --c-carb: #30D158;
+  --c-fat: #FF9F0A;
+  /* 浅色模式可读深色版色板（对近白底均 ≥6:1） */
+  --deep-green: #166534;
+  --deep-blue: #1D4ED8;
+  --deep-purple: #7E22CE;
+  --deep-pink: #BE123C;
+  --deep-orange: #9A3412;
+  --deep-yellow: #854D0E;
+  --deep-red: #B91C1C;
+  --deep-teal: #155E75;
+  --accent-deep: var(--deep-green);
+  --accent-dim-deep: rgba(22, 101, 52, 0.12);
+  --accent-water-deep: var(--deep-teal);
+  --accent-exercise-deep: var(--deep-orange);
+  --accent-sleep-deep: var(--deep-purple);
+  --accent-diet-deep: var(--deep-yellow);
+  --gauge-intake-deep: var(--deep-yellow);
+  --gauge-burn-deep: var(--deep-orange);
+}
+
+/* 模块强调色 */
+body.mod-water { --accent: var(--accent-water); --accent-dim: rgba(48, 176, 199, 0.14); }
+body.mod-eat { --accent: var(--accent-diet); --accent-dim: rgba(255, 214, 10, 0.14); }
+body.mod-move { --accent: var(--accent-exercise); --accent-dim: rgba(255, 107, 53, 0.14); }
+body.mod-sleep { --accent: var(--accent-sleep); --accent-dim: rgba(155, 114, 240, 0.14); }
+
+/* ---------- 主题色（v1.9）：覆盖模块色，全局同步（按钮/高亮/圆环/描边） ----------
+   每套主题同时给出 vivid（深色背景用）与 deep（浅色背景用，保证对比度）两组值 */
+body[data-theme="blue"] { --accent: #0A84FF; --accent-dim: rgba(10, 132, 255, 0.14); --accent-water: #0A84FF; --accent-exercise: #0A84FF; --accent-sleep: #0A84FF; --accent-diet: #0A84FF; --accent-deep: var(--deep-blue); --accent-dim-deep: rgba(29, 78, 216, 0.12); --accent-water-deep: var(--deep-blue); --accent-exercise-deep: var(--deep-blue); --accent-sleep-deep: var(--deep-blue); --accent-diet-deep: var(--deep-blue); --gauge-intake: #0A84FF; --gauge-burn: #0A84FF; --gauge-intake-deep: var(--deep-blue); --gauge-burn-deep: var(--deep-blue); }
+body[data-theme="green"] { --accent: #30D158; --accent-dim: rgba(48, 209, 88, 0.14); --accent-water: #30D158; --accent-exercise: #30D158; --accent-sleep: #30D158; --accent-diet: #30D158; --accent-deep: var(--deep-green); --accent-dim-deep: rgba(22, 101, 52, 0.12); --accent-water-deep: var(--deep-green); --accent-exercise-deep: var(--deep-green); --accent-sleep-deep: var(--deep-green); --accent-diet-deep: var(--deep-green); --gauge-intake: #30D158; --gauge-burn: #30D158; --gauge-intake-deep: var(--deep-green); --gauge-burn-deep: var(--deep-green); }
+body[data-theme="purple"] { --accent: #BF5AF2; --accent-dim: rgba(191, 90, 242, 0.14); --accent-water: #BF5AF2; --accent-exercise: #BF5AF2; --accent-sleep: #BF5AF2; --accent-diet: #BF5AF2; --accent-deep: var(--deep-purple); --accent-dim-deep: rgba(126, 34, 206, 0.12); --accent-water-deep: var(--deep-purple); --accent-exercise-deep: var(--deep-purple); --accent-sleep-deep: var(--deep-purple); --accent-diet-deep: var(--deep-purple); --gauge-intake: #BF5AF2; --gauge-burn: #BF5AF2; --gauge-intake-deep: var(--deep-purple); --gauge-burn-deep: var(--deep-purple); }
+body[data-theme="pink"] { --accent: #FF375F; --accent-dim: rgba(255, 55, 95, 0.14); --accent-water: #FF375F; --accent-exercise: #FF375F; --accent-sleep: #FF375F; --accent-diet: #FF375F; --accent-deep: var(--deep-pink); --accent-dim-deep: rgba(190, 18, 60, 0.12); --accent-water-deep: var(--deep-pink); --accent-exercise-deep: var(--deep-pink); --accent-sleep-deep: var(--deep-pink); --accent-diet-deep: var(--deep-pink); --gauge-intake: #FF375F; --gauge-burn: #FF375F; --gauge-intake-deep: var(--deep-pink); --gauge-burn-deep: var(--deep-pink); }
+body[data-theme="orange"] { --accent: #FF9F0A; --accent-dim: rgba(255, 159, 10, 0.14); --accent-water: #FF9F0A; --accent-exercise: #FF9F0A; --accent-sleep: #FF9F0A; --accent-diet: #FF9F0A; --accent-deep: var(--deep-orange); --accent-dim-deep: rgba(154, 52, 18, 0.12); --accent-water-deep: var(--deep-orange); --accent-exercise-deep: var(--deep-orange); --accent-sleep-deep: var(--deep-orange); --accent-diet-deep: var(--deep-orange); --gauge-intake: #FF9F0A; --gauge-burn: #FF9F0A; --gauge-intake-deep: var(--deep-orange); --gauge-burn-deep: var(--deep-orange); }
+
+/* 主题色选择器 */
+.theme-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.theme-swatch {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 12px 8px; border-radius: var(--radius-sm);
+  border: 1.5px solid var(--line);
+  background: var(--tint);
+  color: var(--text); font-size: 0.8rem; cursor: pointer;
+}
+.theme-swatch i { width: 26px; height: 26px; border-radius: 50%; display: block; }
+.theme-swatch.active { border-color: var(--accent); background: var(--accent-dim); font-weight: 600; }
+.theme-sec-title { margin-top: 18px; font-size: 0.9rem; font-weight: 600; }
+
+/* ---------- 背景色方案（v1.11）：3深 + 3暖浅，与主题色独立 ----------
+   属性注入在 <html>（head 内联脚本防闪烁），令牌覆盖写在 body 级以压过主题/模块色 */
+html[data-bg="blue"] body { --bg: #0A0E1A; --card: #1B2130; --bar: rgba(20, 26, 40, 0.94); }
+html[data-bg="purple"] body { --bg: #0F0A14; --card: #241B2E; --bar: rgba(26, 20, 34, 0.94); }
+/* 浅色公共令牌：正文纯黑、语义色/表盘色换深色可读版 */
+html[data-bg="white"] body, html[data-bg="pink"] body, html[data-bg="amber"] body {
+  --card-border: rgba(0, 0, 0, 0.08);
+  --text: #000000;
+  --track: rgba(0, 0, 0, 0.10);
+  --tint: rgba(0, 0, 0, 0.03);
+  --field: rgba(0, 0, 0, 0.05);
+  --tint-strong: rgba(0, 0, 0, 0.07);
+  --line: rgba(0, 0, 0, 0.12);
+  --line-strong: rgba(0, 0, 0, 0.28);
+  --focus: rgba(0, 0, 0, 0.15);
+  --shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --accent: var(--accent-deep);
+  --accent-dim: var(--accent-dim-deep);
+  --accent-water: var(--accent-water-deep);
+  --accent-exercise: var(--accent-exercise-deep);
+  --accent-sleep: var(--accent-sleep-deep);
+  --accent-diet: var(--accent-diet-deep);
+  --good: var(--deep-green);
+  --warn: var(--deep-yellow);
+  --danger: var(--deep-red);
+  --gauge-intake: var(--gauge-intake-deep);
+  --gauge-burn: var(--gauge-burn-deep);
+  --c-protein: var(--deep-blue);
+  --c-carb: var(--deep-green);
+  --c-fat: var(--deep-orange);
+  --chart-est: #6E6E73;
+  --tip-move-text: var(--deep-orange);
+  --tip-sleep-text: var(--deep-purple);
+  --tip-diet-text: var(--deep-yellow);
+}
+html[data-bg="white"] body { --bg: #FFFFFF; --card: #F2F2F7; --bar: rgba(242, 242, 247, 0.92); --text-secondary: #1C1C1E; }
+html[data-bg="pink"] body { --bg: #FFF0F5; --card: #FFE4E8; --bar: rgba(255, 228, 232, 0.92); --text-secondary: #3D2A2E; }
+html[data-bg="amber"] body { --bg: #FFF8F0; --card: #FFEAD8; --bar: rgba(255, 234, 216, 0.92); --text-secondary: #3A2E22; }
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html { font-size: 16px; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro", "PingFang SC", sans-serif;
+  line-height: 1.6;
+  min-height: 100vh;
+  padding-bottom: 84px; /* 给底部导航留空间 */
+}
+
+.container { max-width: 640px; margin: 0 auto; padding: 16px; }
+
+h1 { font-size: 1.75rem; font-weight: 700; margin: 8px 0 20px; letter-spacing: 0.01em; }
+h2 { font-size: 1.05rem; font-weight: 600; margin-bottom: 12px; color: var(--text); }
+h1 .logo { color: var(--accent); }
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.muted { color: var(--text-secondary); font-size: 0.85rem; }
+.small { font-size: 0.8rem; }
+.center { text-align: center; }
+.accent { color: var(--accent); }
+.danger-text { color: var(--danger); }
+
+.big-num { font-size: 2rem; font-weight: 700; color: var(--accent); line-height: 1.2; }
+
+/* ---------- 表单 ---------- */
+label { display: block; font-size: 0.85rem; color: var(--text-secondary); margin: 12px 0 6px; }
+
+input[type="text"], input[type="number"], input[type="time"], select, textarea {
+  width: 100%;
+  background: var(--field);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 11px 14px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus);
+}
+
+textarea { resize: vertical; min-height: 60px; }
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23ffffff' stroke-opacity='0.6' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+}
+select option { background: var(--card); color: var(--text); }
+
+.form-row { display: flex; gap: 12px; }
+.form-row > div { flex: 1; }
+
+/* ---------- 按钮 ---------- */
+.btn {
+  display: inline-block;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s ease, opacity 0.12s;
+}
+.btn:active { transform: scale(0.96); opacity: 0.85; }
+
+.btn-block { display: block; width: 100%; }
+.btn-ghost {
+  background: var(--tint-strong);
+  color: var(--accent);
+  border: none;
+  box-shadow: none;
+}
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-sm { padding: 8px 16px; font-size: 0.9rem; border-radius: 999px; }
+
+.btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+
+/* ---------- 首页表盘 ---------- */
+.gauge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.gauge-card { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 18px 12px; margin-bottom: 16px; }
+.gauge { position: relative; width: 132px; height: 132px; }
+.gauge-svg { width: 100%; height: 100%; display: block; }
+.gauge-arc { transition: stroke-dashoffset 0.8s ease; }
+.gauge-center {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.gauge-num { font-size: 1.5rem; font-weight: 700; color: var(--text); line-height: 1.1; }
+.gauge-unit { font-size: 0.7rem; color: var(--text-secondary); }
+.gauge-title { margin-top: 10px; font-size: 0.9rem; color: var(--text); font-weight: 600; }
+.gauge-sub { font-size: 0.75rem; color: var(--accent); margin-top: 2px; word-break: break-all; }
+
+/* 公共多层环（v1.8）：SVG 自适应容器尺寸 */
+.ring-svg { width: 100%; height: 100%; display: block; }
+
+/* ---------- 蔬菜/纤维追踪卡（v1.8，无数据隐藏） ---------- */
+.fiber-card {
+  display: flex; align-items: center; gap: 12px;
+  margin-top: 16px; padding: 14px 18px;
+  border-color: rgba(48, 209, 88, 0.35);
+}
+.fiber-icon { font-size: 1.6rem; }
+.fiber-mid { flex: 1; min-width: 0; }
+.fiber-title { font-size: 0.9rem; font-weight: 600; }
+.fiber-num { font-size: 1.5rem; font-weight: 700; color: var(--accent); white-space: nowrap; }
+
+.stat-card { display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 110px; }
+.stat-card .stat-title { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 6px; }
+.stat-card .stat-label { color: var(--text-secondary); font-size: 0.75rem; margin-top: 6px; text-align: center; }
+
+/* 宏量营养素小环 */
+.macro-gauges { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.macro-gauge { display: flex; flex-direction: column; align-items: center; text-align: center; }
+.gauge-mini { width: 86px; height: 86px; }
+.macro-num { font-size: 1.05rem; font-weight: 700; color: var(--text); line-height: 1.1; }
+.macro-unit { font-size: 0.6rem; color: var(--text-secondary); }
+.macro-name { margin-top: 6px; font-size: 0.85rem; font-weight: 600; }
+.macro-status { margin-top: 2px; font-size: 0.7rem; line-height: 1.4; color: var(--text-secondary); }
+.macro-status.st-good { color: var(--good); }
+.macro-status.st-low { color: var(--warn); }
+.macro-status.st-over { color: var(--danger); }
+.macro-status.st-none { color: var(--text-secondary); }
+
+/* ---------- 饮食宫格（v1.6 修复+优化） ---------- */
+.meal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.meal-cell { margin-bottom: 0; padding: 20px; min-height: 150px; cursor: pointer; display: flex; flex-direction: column; }
+.meal-cell.span2 { grid-column: 1 / -1; }
+.cell-brief { display: flex; flex-direction: column; flex: 1; }
+.cell-brief .cell-name { font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); text-align: left; }
+.cell-brief .cell-kcal {
+  font-size: 28px; font-weight: 700; text-align: center;
+  margin: 10px 0 12px; line-height: 1;
+}
+.cell-kcal-unit { font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-left: 4px; }
+.cell-ring-row { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: auto; }
+.cell-ring { display: block; width: 88px; height: 88px; position: relative; }
+
+/* 环内营养素文字标识（v1.9）：居中三行，颜色与分段弧一致 */
+.ring-labels { display: flex; flex-direction: column; align-items: center; gap: 1px; }
+.ring-labels span { font-size: 10px; line-height: 1.3; font-weight: 600; letter-spacing: 1px; }
+.cell-form { display: none; margin-top: 14px; }
+.cell-form > * + * { margin-top: 12px; }
+.meal-cell.open { cursor: default; border-color: var(--line-strong); }
+.meal-cell.open .cell-brief { cursor: pointer; }
+.meal-cell.open .cell-form { display: block; }
+
+/* ---------- AI解析区（v1.7 醒目） ---------- */
+.parse-zone {
+  border: 1.5px solid var(--accent);
+  background: var(--tint);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+.parse-hint { font-size: 0.8rem; color: var(--accent); line-height: 1.5; }
+.parse-zone input { width: 100%; font-size: 0.95rem; margin-top: 10px; }
+.parse-btn { margin-top: 10px; padding: 14px 18px; font-size: 1rem; font-weight: 700; }
+
+/* 表单字段下的小提示（v1.7） */
+.field-note { margin: -4px 0 14px; font-size: 0.75rem; line-height: 1.6; color: var(--text-secondary); }
+
+/* ---------- AI评价折叠 ---------- */
+.meal-note { margin-top: 12px; background: var(--tint); border-radius: var(--radius-sm); padding: 10px 12px; }
+.meal-note summary { cursor: pointer; color: var(--accent); font-size: 0.85rem; outline: none; }
+.meal-note p { margin-top: 6px; }
+
+/* ---------- 睡眠页 ---------- */
+.sleep-big { font-size: 2rem; font-weight: 700; color: var(--accent-sleep); line-height: 1.1; }
+.sleep-tag {
+  display: inline-block; margin-top: 8px;
+  background: rgba(155, 114, 240, 0.16); color: var(--accent-sleep);
+  border-radius: 999px; padding: 3px 12px; font-size: 0.75rem; font-weight: 600;
+}
+.sleep-history { list-style: none; }
+.sleep-history li { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-bottom: 1px solid var(--card-border); font-size: 0.85rem; }
+.sleep-history li:last-child { border-bottom: none; }
+.sleep-history .sh-date { flex: 0 0 84px; color: var(--text-secondary); }
+.sleep-history .sh-dur { flex: 0 0 48px; font-weight: 700; color: var(--accent-sleep); }
+.sleep-history .sh-desc { flex: 1; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- 提示条 ---------- */
+.night-tip, .sleep-tip, .month-tip {
+  border-radius: var(--radius-sm);
+  padding: 10px 14px; margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px; font-size: 0.88rem;
+}
+.night-tip {
+  background: rgba(255, 107, 53, 0.14);
+  border: 1px solid rgba(255, 107, 53, 0.5);
+  color: var(--tip-move-text);
+}
+.sleep-tip {
+  background: rgba(155, 114, 240, 0.14);
+  border: 1px solid rgba(155, 114, 240, 0.5);
+  color: var(--tip-sleep-text);
+}
+.month-tip {
+  background: rgba(255, 214, 10, 0.12);
+  border: 1px solid rgba(255, 214, 10, 0.45);
+  color: var(--tip-diet-text);
+}
+.night-tip .night-close, .sleep-tip .tip-close, .month-tip .tip-close {
+  margin-left: auto; background: transparent; border: none;
+  color: inherit; font-size: 1rem; cursor: pointer; flex: 0 0 auto;
+}
+
+/* ---------- 复盘子Tab ---------- */
+.subtabs { display: flex; gap: 8px; margin-bottom: 16px; }
+.subtab {
+  flex: 1; padding: 10px 0; border-radius: 999px;
+  background: var(--card); color: var(--text-secondary);
+  border: 1px solid var(--card-border);
+  font-size: 0.95rem; cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.subtab.active { color: var(--accent); background: var(--accent-dim); border-color: transparent; }
+
+/* ---------- 大水人影 ---------- */
+.person-box { display: flex; justify-content: center; padding: 6px 0; }
+.person-svg { width: 200px; max-width: 70vw; cursor: pointer; user-select: none; -webkit-user-select: none; }
+#cupG { transform-box: fill-box; transform-origin: 20% 80%; transition: transform 0.3s ease; }
+.person-svg.drinking #cupG { transform: rotate(-15deg); }
+.person-svg.drinking .person-body { transform: translateY(2px); }
+.person-body { transition: transform 0.3s ease; }
+.water-topline { text-align: center; font-size: 1.3rem; font-weight: 700; color: var(--accent-water); }
+
+/* 满桶彩带 */
+.confetti-box { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+.confetti-box i {
+  position: absolute; top: -20px;
+  width: 8px; height: 14px; border-radius: 2px;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  to { transform: translateY(110vh) rotate(720deg); opacity: 0.6; }
+}
+
+/* ---------- 底部导航 ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+  background: var(--bar);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--card-border);
+  display: flex; justify-content: space-around;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  padding: 8px 2px calc(8px + env(safe-area-inset-bottom));
+}
+.tabbar a {
+  color: var(--text-secondary); text-decoration: none;
+  font-size: 0.66rem; text-align: center;
+  flex: 1 0 56px; min-width: 56px;
+  padding: 4px 0;
+  transition: color 0.2s;
+}
+.tabbar a .tab-icon { display: block; font-size: 1.25rem; }
+.tabbar a.active { color: var(--accent); }
+
+/* ---------- 全局菜单 ---------- */
+.menu-btn {
+  position: fixed; top: 12px; right: 12px; z-index: 1200;
+  width: 42px; height: 42px; border-radius: 999px;
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--card-border);
+  font-size: 1.3rem; line-height: 1; cursor: pointer;
+  box-shadow: var(--shadow);
+}
+.menu-panel {
+  position: fixed; top: 60px; right: 12px; z-index: 1190;
+  width: 210px; background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius); padding: 8px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
+  display: none; flex-direction: column; gap: 2px;
+}
+.menu-panel.open { display: flex; animation: menuIn 0.18s ease; }
+@keyframes menuIn { from { opacity: 0; transform: translateY(-6px); } }
+.menu-panel button, .menu-panel a.menu-link {
+  background: transparent; border: none; color: var(--text);
+  text-align: left; padding: 11px 12px; border-radius: var(--radius-sm);
+  font-size: 0.92rem; cursor: pointer; text-decoration: none; display: block;
+}
+.menu-panel button:active, .menu-panel a.menu-link:active { background: var(--tint-strong); }
+.menu-sub { display: none; flex-direction: column; gap: 2px; padding-left: 14px; }
+.menu-sub.open { display: flex; }
+.menu-sub button { font-size: 0.85rem; color: var(--text-secondary); padding: 8px 12px; }
+.menu-foot { font-size: 0.72rem; color: var(--text-secondary); padding: 8px 12px 4px; border-top: 1px solid var(--card-border); margin-top: 4px; }
+
+/* ---------- 模态框 ---------- */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 1300;
+  background: rgba(0, 0, 0, 0.7);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.modal-card { position: relative; width: 100%; max-width: 440px; max-height: 82vh; overflow: auto; margin: 0; }
+.modal-close {
+  position: absolute; top: 10px; right: 12px;
+  background: var(--tint-strong); border: none; color: var(--text-secondary);
+  width: 28px; height: 28px; border-radius: 999px;
+  font-size: 0.9rem; cursor: pointer;
+}
+.guide-list { padding-left: 20px; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem; }
+
+/* ---------- 使用说明（v1.7 重写） ---------- */
+.guide-hero {
+  margin: 14px 0 4px; padding: 14px;
+  border: 1px solid rgba(48, 209, 88, 0.35);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, rgba(48, 209, 88, 0.18), rgba(48, 176, 199, 0.12));
+}
+.guide-hero .gh-title { font-size: 1rem; font-weight: 700; color: var(--accent); }
+.guide-hero .gh-text { margin-top: 6px; font-size: 0.875rem; line-height: 1.75; }
+.guide-sec { margin-top: 18px; }
+.guide-sec h3 { font-size: 0.95rem; margin-bottom: 6px; }
+.guide-sec p { font-size: 0.85rem; line-height: 1.85; color: var(--text-secondary); }
+.guide-sec .guide-list { margin-top: 8px; line-height: 1.75; }
+
+/* ---------- 趋势图 ---------- */
+.trend-svg { width: 100%; }
+.chart-card canvas { max-height: 220px; }
+
+/* ---------- 提示条（内容块） ---------- */
+.tip {
+  background: var(--field);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  margin: 10px 0;
+  color: var(--text);
+}
+.tip ul { padding-left: 18px; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 100px; transform: translateX(-50%);
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--card-border);
+  padding: 10px 20px; border-radius: 999px;
+  font-weight: 600; font-size: 0.9rem; z-index: 1400;
+  box-shadow: var(--shadow);
+  animation: toastIn 0.25s ease;
+  max-width: 90vw; text-align: center;
+}
+@keyframes toastIn { from { opacity: 0; transform: translate(-50%, 8px); } }
+
+/* ---------- 结果展示 ---------- */
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.result-item {
+  background: var(--tint); border-radius: var(--radius-sm); padding: 10px 12px;
+}
+.result-item .k { color: var(--text-secondary); font-size: 0.75rem; }
+.result-item .v { color: var(--accent); font-size: 1.2rem; font-weight: 700; }
+
+/* ---------- 列表 ---------- */
+.log-list { list-style: none; margin-top: 10px; }
+.log-list li {
+  display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  padding: 8px 0; border-bottom: 1px solid var(--card-border);
+  font-size: 0.9rem;
+}
+.log-list li:last-child { border-bottom: none; }
+
+/* ---------- 运动目标区 ---------- */
+.move-goal { font-size: 0.9rem; color: var(--accent); }
+.move-goal.empty { color: var(--text-secondary); }
+.log-ai-row { display: flex; gap: 6px; margin-top: 6px; }
+.log-ai-row input { flex: 1; font-size: 0.8rem; padding: 6px 10px; }
+
+/* ---------- SW 更新提示（v1.12）：新版本就绪时浮出，点击立即接管并刷新 ---------- */
+.sw-update-btn {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(84px + env(safe-area-inset-bottom)); z-index: 300;
+  padding: 12px 22px; border: none; border-radius: 999px;
+  background: var(--accent); color: var(--bg);
+  font-size: 0.95rem; font-weight: 700; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  animation: swUpdatePop 0.25s ease;
+}
+@keyframes swUpdatePop {
+  from { transform: translateX(-50%) translateY(12px); opacity: 0; }
+  to { transform: translateX(-50%) translateY(0); opacity: 1; }
+}
